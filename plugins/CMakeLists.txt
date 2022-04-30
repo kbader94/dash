@@ -55,6 +55,7 @@ FOREACH(plugin_type ${plugin_types})
             ${Qt5MultimediaWidgets_LIBRARIES}
             ${Qt5Bluetooth_LIBRARIES}
             KF5::BluezQt
+            KF5::WindowSystem
             ${LIBUSB_1_LIBRARIES}
             ${PROTOBUF_LIBRARIES}
             ${BCM_HOST_LIBRARIES}

@@ -21,6 +21,8 @@ class Dash : public QWidget {
    public:
     Dash(Arbiter &arbiter);
     void init();
+    int add_page(Page *page, QIcon icon);
+    void remove_page(Page *page);
 
    private:
     struct NavRail {

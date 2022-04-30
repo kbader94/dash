@@ -29,7 +29,9 @@ LauncherPlugins::LauncherPlugins(Arbiter &arbiter, QWidget *parent)
             plugin_loader->setFileName(this->plugins[key].absoluteFilePath());
 
             if (LauncherPlugin *plugin = qobject_cast<LauncherPlugin *>(plugin_loader->instance())) {
-                plugin->dashize(&this->arbiter);
+                QTabWidget *tabWidget = qobject_cast<QTabWidget *>(this);
+                plugin->init(&this->arbiter, tabWidget);
+   
                 for (QWidget *tab : plugin->widgets())
                     this->addTab(tab, tab->objectName());
                 this->active_plugins.append(plugin_loader);
@@ -54,7 +56,8 @@ LauncherPlugins::LauncherPlugins(Arbiter &arbiter, QWidget *parent)
         plugin_loader->setFileName(this->plugins[launcher_plugin].absoluteFilePath());
 
         if (LauncherPlugin *plugin = qobject_cast<LauncherPlugin *>(plugin_loader->instance())) {
-            plugin->dashize(&this->arbiter);
+            QTabWidget *tabWidget = qobject_cast<QTabWidget *>(this);
+            plugin->init(&this->arbiter, tabWidget);         
             for (QWidget *tab : plugin->widgets())
                 this->addTab(tab, tab->objectName());
             this->active_plugins.append(plugin_loader);

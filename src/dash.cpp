@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
 
     QPixmap pixmap(QPixmap(":/splash.png").scaledToHeight(size.height()/2));
     QSplashScreen splash(pixmap);
+    splash.setWindowTitle("dash");
     splash.setMask(pixmap.mask());
     splash.show();
     dash.processEvents();
@@ -29,12 +30,14 @@ int main(int argc, char *argv[])
     Window window;
     window.setWindowIcon(QIcon(":/logo.png"));
     window.setWindowFlags(Qt::FramelessWindowHint);
+    window.setAttribute(Qt::WA_X11NetWmWindowTypeDesktop);
     if (!use_fixed_size)
         window.setWindowState(Qt::WindowFullScreen);
 
     // force to either screen or custom size
     window.setFixedSize(size);
     window.show();
+    
     splash.finish(&window);
 
     return dash.exec();
