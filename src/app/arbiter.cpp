@@ -63,13 +63,52 @@ void Arbiter::set_curr_quick_view(QuickView *quick_view)
 
     this->layout().control_bar.curr_quick_view = quick_view;
     this->settings().setValue("Layout/ControlBar/quick_view", id);
-
+    
     emit curr_quick_view_changed(quick_view);
 }
 
 void Arbiter::set_curr_quick_view(int id)
 {
     this->set_curr_quick_view(this->layout().control_bar.quick_view(id));
+}
+
+void Arbiter::set_quick_view(QuickView *quick_view, bool enabled = true)
+{
+
+    this->settings().setValue("Layout/ControlBar/" + quick_view->name(), enabled);
+    emit this->quick_views_changed(this->get_enabled_quick_views());
+
+}
+
+void Arbiter::set_quick_view(int id, bool enabled = true)
+{
+
+
+}
+
+QList<QuickView *> Arbiter::get_enabled_quick_views()
+{
+    QList<QuickView *> rtn;
+    for(QuickView *quick_view : this->layout().control_bar.quick_views()){
+
+        if(this->settings().contains("Layout/ControlBar/" + quick_view->name())){
+            if(this->settings().value("Layout/ControlBar/" + quick_view->name()) == true){
+                rtn.push_back(quick_view);
+            }
+        }
+                
+    }
+
+    return rtn;
+}
+
+bool Arbiter::is_quick_view_enabled(QuickView *quick_view)
+{
+    if(this->settings().value("Layout/ControlBar/" + quick_view->name()) == true){
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Arbiter::set_curr_page(Page *page)

@@ -25,6 +25,10 @@ class Arbiter : public QObject {
     void set_control_bar(bool enabled);
     void set_curr_quick_view(QuickView *quick_view);
     void set_curr_quick_view(int id);
+    void set_quick_view(QuickView *quick_view, bool enabled);
+    void set_quick_view(int id, bool enabled);
+    QList<QuickView *> get_enabled_quick_views();
+    bool is_quick_view_enabled(QuickView *quick_view);
     void set_curr_page(Page *page);
     void set_curr_page(int id);
     void set_page(Page *page, bool enabled);
@@ -60,6 +64,7 @@ class Arbiter : public QObject {
     void scale_changed(float scale);
     void control_bar_changed(bool enabled);
     void curr_quick_view_changed(QuickView *quick_view);
+    void quick_views_changed(QList<QuickView *> quick_views);
     void curr_page_changed(Page *page);
     void page_changed(Page *page, bool enabled);
     void brightness_plugin_changed(QString plugin);

@@ -95,19 +95,36 @@ QWidget *Dash::control_bar() const
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    auto quick_views = new QStackedLayout();
+    auto quick_views = new QVBoxLayout();
     quick_views->setContentsMargins(0, 0, 0, 0);
     layout->addLayout(quick_views);
-    for (auto quick_view : this->arbiter.layout().control_bar.quick_views()) {
-        quick_views->addWidget(quick_view->widget());
+
+    for (auto quick_view : this->arbiter.layout().control_bar.quick_views()){
         quick_view->init();
     }
-    quick_views->setCurrentWidget(this->arbiter.layout().control_bar.curr_quick_view->widget());
-    connect(&this->arbiter, &Arbiter::curr_quick_view_changed, [quick_views](QuickView *quick_view){
-        quick_views->setCurrentWidget(quick_view->widget());
-    });
+    for (auto enabled_quick_view : this->arbiter.get_enabled_quick_views()) {
+        quick_views->addWidget(enabled_quick_view->widget());
+    }
 
-    layout->addStretch();
+    connect(&this->arbiter, &Arbiter::quick_views_changed, [quick_views, widget](QList<QuickView *> enabled_quick_views){
+
+        QLayoutItem *child;
+        while ((child = quick_views->takeAt(0)) != 0) {
+            child->widget()->hide();
+            delete child;
+        }
+
+        for(auto enabled_quick_view : enabled_quick_views){
+            qDebug() << "adding quick view: " << enabled_quick_view->name();
+            quick_views->addWidget(enabled_quick_view->widget());
+            enabled_quick_view->widget()->show();
+            //enabled_quick_view->init();
+        }
+    });
+    //quick_views->setCurrentWidget(this->arbiter.layout().control_bar.curr_quick_view->widget());
+    //connect(&this->arbiter, &Arbiter::curr_quick_view_changed, [quick_views](QuickView *quick_view){
+    //    quick_views->setCurrentWidget(quick_view->widget());
+    //});
 
     auto dialog = new Dialog(this->arbiter, true, this->arbiter.window());
     dialog->set_title("Power Off");

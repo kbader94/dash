@@ -64,7 +64,7 @@ class Session {
             QuickView *curr_quick_view;
 
             ControlBar(QSettings &settings, Arbiter &arbiter);
-
+            
             const QList<QuickView *> &quick_views() const { return this->quick_views_; }
             QuickView *quick_view(int id) const { return this->quick_views_.value(id, nullptr); }
             int quick_view_id(QuickView *quick_view) const { return this->quick_views_.indexOf(quick_view); }

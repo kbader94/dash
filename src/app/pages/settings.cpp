@@ -346,17 +346,28 @@ QWidget *LayoutSettingsTab::quick_view_row_widget()
     QWidget *widget = new QWidget(this);
     QHBoxLayout *layout = new QHBoxLayout(widget);
 
-    QLabel *label = new QLabel("Quick View", widget);
+    QLabel *label = new QLabel("Quick Views", widget);
     layout->addWidget(label, 1);
 
-    QStringList quick_views;
-    for (auto quick_view : this->arbiter.layout().control_bar.quick_views())
-        quick_views.append(quick_view->name());
-    Selector *selector = new Selector(quick_views, this->arbiter.layout().control_bar.curr_quick_view->name(), this->arbiter.forge().font(14), this->arbiter, widget);
-    connect(selector, &Selector::idx_changed, [this](int idx){
-        this->arbiter.set_curr_quick_view(idx);
-    });
-    layout->addWidget(selector, 1);
+    QGroupBox *group = new QGroupBox(widget);
+    QVBoxLayout *group_layout = new QVBoxLayout(group);
+   
+    for (auto quick_view : this->arbiter.layout().control_bar.quick_views()){
+
+        if(quick_view->toggleable() == false) continue;
+        
+        QString name = quick_view->name();
+        qDebug() << name;
+        QCheckBox *button = new QCheckBox(name, group);
+        button->setChecked(this->arbiter.is_quick_view_enabled(quick_view));
+        connect(button, &QCheckBox::toggled, [this, quick_view](bool checked){
+            this->arbiter.set_quick_view(quick_view, checked);
+        });
+        group_layout->addWidget(button);
+        
+    }
+
+    layout->addWidget(group, 1, Qt::AlignHCenter);
 
     return widget;
 }

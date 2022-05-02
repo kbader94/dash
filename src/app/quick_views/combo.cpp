@@ -10,7 +10,7 @@
 
 ComboQuickView::ComboQuickView(Arbiter &arbiter)
     : QFrame()
-    , QuickView(arbiter, "combo", this)
+    , QuickView(arbiter, "combo", this, true)
 {
 }
 
