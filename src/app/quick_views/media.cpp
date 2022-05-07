@@ -25,15 +25,13 @@ MediaQuickView::MediaQuickView(Arbiter &arbiter)
 
 void MediaQuickView::init(){
 
-        AAHandler *aa_handler = arbiter.android_auto().handler;
-        mediaWidget = new MediaWidget(this->arbiter,this);
-
         horizontalLayout = new QHBoxLayout(this);
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         horizontalLayout->setContentsMargins(0, 0, 0, 0);
+
+        AAHandler *aa_handler = arbiter.android_auto().handler;
         mediaWidget = new MediaWidget(this->arbiter, this);
         horizontalLayout->addWidget(mediaWidget);
-       
+      
         connect(aa_handler, &AAHandler::aa_media_playback_update, [this](const aasdk::proto::messages::MediaInfoChannelPlaybackData& playback){
             mediaWidget->updatePlayback(playback);
         });
@@ -44,6 +42,7 @@ void MediaQuickView::init(){
 
 }
 
+
 MediaWidget::MediaWidget(Arbiter &arbiter, QWidget *parent)
     : QWidget(parent)
     ,arbiter(arbiter)
@@ -51,14 +50,14 @@ MediaWidget::MediaWidget(Arbiter &arbiter, QWidget *parent)
 
     scroll_timer = new QTimer(this);
     scroll_timer->start(33);//30fps
-    connect(scroll_timer, &QTimer::timeout, [this](){
+    connect(scroll_timer, &QTimer::timeout, [this, &arbiter](){
         
         if(metadata_.has_track_name() && metadata_.has_artist_name()){
             QString track_info(QString::fromStdString(metadata_.artist_name()) + 
             " - " +
             QString::fromStdString(metadata_.track_name()));
-            QFont myFont("arial", 10);
-            QFontMetrics fm(myFont);
+            QFont font = arbiter.forge().font(10);
+            QFontMetrics fm(font);
             int text_width=fm.width(track_info);
             
             int text_rect_width = (width() / 2) - (height() / 2 + (height() * 2));
@@ -78,11 +77,11 @@ MediaWidget::MediaWidget(Arbiter &arbiter, QWidget *parent)
                     }
                 }
 
+                this->update();
+
             }
             
         }
-        
-        this->update();
 
     });
 
@@ -127,8 +126,8 @@ void MediaWidget::paintEvent(QPaintEvent *event)
         QString track_info(QString::fromStdString(metadata_.artist_name()) + 
         " - " +
         QString::fromStdString(metadata_.track_name()));
-        QFont myFont("arial", 10);
-        painter.setFont(myFont);
+        QFont font = arbiter.forge().font(10);
+        painter.setFont(font);
         painter.setClipRect(height(),0, text_rect_width ,height());
         painter.drawText(title_pos, track_info);
         painter.setClipping(false);
@@ -141,14 +140,15 @@ void MediaWidget::paintEvent(QPaintEvent *event)
 
     /*** PLAY/PAUSE BUTTON ***/
     if(this->playback_.has_track_progress() && connected &&
-                metadata_.has_track_length() && metadata_.track_length() != 0){
+                metadata_.has_track_length()){
             
-        QPen progressBGPen = QPen(arbiter.theme().color(),4);
+        QPen progressBGPen = QPen(arbiter.theme().color(),3);
         painter.setPen(progressBGPen);
         painter.drawArc(play_rect,1440,5760);
+
         QPen progressPen = QPen(QColor(70,70,70),4);
         painter.setPen(progressPen);  
-        int step =  5760 / metadata_.track_length();
+        int step =  (metadata_.track_length()<=0) ? 0 : 5760 / metadata_.track_length();
         int invVal = metadata_.track_length() - playback_.track_progress();
         int val = step * invVal;
         painter.drawArc(play_rect,1440,val);
@@ -216,8 +216,11 @@ void MediaWidget::updatePlayback(const aasdk::proto::messages::MediaInfoChannelP
 
 void MediaWidget::updateMetadata(const aasdk::proto::messages::MediaInfoChannelMetadataData& metadata)
 {
-
-    title_pos = QPoint(height() + 8, (height() / 2) + 5);//reset
+    
+    QFont font = arbiter.forge().font(10);
+    QFontMetrics fm(font);
+    int text_height=fm.height() / 4;
+    title_pos = QPoint(height() + 8, (height() / 2) + text_height);//reset
     this->metadata_ = metadata;
     this->update();
 
