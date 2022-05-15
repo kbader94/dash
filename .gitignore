@@ -67,4 +67,5 @@ openauto.ini
 ###########
 plugins/vehicle/*
 !plugins/vehicle/test
+!plugins/vehicle/Malibu
 !plugins/vehicle/README.md
