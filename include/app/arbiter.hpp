@@ -27,6 +27,7 @@ class Arbiter : public QObject {
     void set_curr_quick_view(int id);
     void set_quick_view(QuickView *quick_view, bool enabled);
     void set_quick_view(int id, bool enabled);
+    void add_quick_view(QuickView *quick_view, bool enabled);
     QList<QuickView *> get_enabled_quick_views();
     bool is_quick_view_enabled(QuickView *quick_view);
     void set_curr_page(Page *page);

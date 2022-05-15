@@ -367,6 +367,27 @@ QWidget *LayoutSettingsTab::quick_view_row_widget()
         
     }
 
+    connect(&this->arbiter, &Arbiter::quick_views_changed, [this, group_layout, group](QList<QuickView *> enabled_quick_views){
+        
+        QLayoutItem *child;
+        while ((child = group_layout->takeAt(0)) != 0) {
+            child->widget()->hide();
+            delete child;
+        }
+
+        for(auto quick_view : arbiter.layout().control_bar.quick_views()){
+            if(quick_view->toggleable() == false) continue;
+            
+            QString name = quick_view->name();
+            QCheckBox *button = new QCheckBox(name, group);
+            button->setChecked(this->arbiter.is_quick_view_enabled(quick_view));
+            connect(button, &QCheckBox::toggled, [this, quick_view](bool checked){
+                this->arbiter.set_quick_view(quick_view, checked);
+            });
+            group_layout->addWidget(button);
+        }
+    });
+
     layout->addWidget(group, 1, Qt::AlignHCenter);
 
     return widget;

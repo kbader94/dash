@@ -10,6 +10,7 @@ QuickView::QuickView(Arbiter &arbiter, QString name, QWidget *widget,  bool togg
     , toggleable_(toggleable)
     , widget_(widget)
 {
+    
 }
 
 NullQuickView::NullQuickView(Arbiter &arbiter)

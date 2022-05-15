@@ -13,13 +13,14 @@
 StepMeter::StepMeter(Arbiter &arbiter, QWidget *parent)
     : QFrame(parent)
 {
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
 
     this->scale = arbiter.layout().scale;
 }
 
 QSize StepMeter::sizeHint() const
 {
+    qDebug() << "height: " << this->height();
     return QSize(this->height() * 2, this->height());
 }
 

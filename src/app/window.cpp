@@ -104,6 +104,10 @@ QWidget *Dash::control_bar() const
     }
     for (auto enabled_quick_view : this->arbiter.get_enabled_quick_views()) {
         quick_views->addWidget(enabled_quick_view->widget());
+        QFrame *line;
+        line = new QFrame;
+        line->setFrameShape(QFrame::HLine);
+        quick_views->addWidget(line);
     }
 
     connect(&this->arbiter, &Arbiter::quick_views_changed, [quick_views, widget](QList<QuickView *> enabled_quick_views){
@@ -111,21 +115,23 @@ QWidget *Dash::control_bar() const
         QLayoutItem *child;
         while ((child = quick_views->takeAt(0)) != 0) {
             child->widget()->hide();
-            delete child;
+            //delete child;
         }
 
         for(auto enabled_quick_view : enabled_quick_views){
-            qDebug() << "adding quick view: " << enabled_quick_view->name();
             quick_views->addWidget(enabled_quick_view->widget());
             enabled_quick_view->widget()->show();
-            //enabled_quick_view->init();
+            int i = enabled_quick_views.indexOf(enabled_quick_view);
+            if(i == 0) continue;
+            if(i == enabled_quick_views.count() - 1) continue;
+            QFrame *line;
+            line = new QFrame;
+            line->setFrameShape(QFrame::HLine);
+            quick_views->addWidget(line);
+          //  enabled_quick_view->init();
         }
     });
-    //quick_views->setCurrentWidget(this->arbiter.layout().control_bar.curr_quick_view->widget());
-    //connect(&this->arbiter, &Arbiter::curr_quick_view_changed, [quick_views](QuickView *quick_view){
-    //    quick_views->setCurrentWidget(quick_view->widget());
-    //});
-
+    
     auto dialog = new Dialog(this->arbiter, true, this->arbiter.window());
     dialog->set_title("Power Off");
     dialog->set_body(this->power_control());

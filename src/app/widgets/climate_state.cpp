@@ -14,7 +14,7 @@ ClimateState::ClimateState(Arbiter &arbiter, QWidget *parent)
     , body(QIcon(":/icons/chevron_right.svg").pixmap(512, 512))
     , feet(QIcon(":/icons/expand_more.svg").pixmap(512, 512))
 {
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
+    this->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     this->scale = arbiter.layout().scale;
 }

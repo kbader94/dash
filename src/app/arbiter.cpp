@@ -92,14 +92,32 @@ QList<QuickView *> Arbiter::get_enabled_quick_views()
     for(QuickView *quick_view : this->layout().control_bar.quick_views()){
 
         if(this->settings().contains("Layout/ControlBar/" + quick_view->name())){
+            qDebug() << quick_view->name() << " found";
             if(this->settings().value("Layout/ControlBar/" + quick_view->name()) == true){
                 rtn.push_back(quick_view);
+            } else {
+                qDebug() << quick_view->name() << " disabled!";
             }
+        } else {
+             qDebug() << quick_view->name() << " not found";
         }
                 
     }
 
     return rtn;
+}
+
+void Arbiter::add_quick_view(QuickView *quick_view, bool enabled = true)
+{
+
+    if(!this->layout().control_bar.quick_views().contains(quick_view)){
+        quick_view->init();
+        this->layout().control_bar.add_quick_view(quick_view);
+        set_quick_view(quick_view, enabled);
+        emit quick_views_changed(this->get_enabled_quick_views());
+
+    }
+
 }
 
 bool Arbiter::is_quick_view_enabled(QuickView *quick_view)

@@ -47,6 +47,14 @@
         <file>icons/chevron_left.svg</file>
         <file>icons/chevron_right.svg</file>
         <file>icons/defrost.svg</file>
+         <file>icons/ac_off.svg</file>
+          <file>icons/ac_eco.svg</file>
+           <file>icons/ac_max.svg</file>
+            <file>icons/heated_seat.svg</file>
+             <file>icons/rear-window-defrost.svg</file>
+              <file>icons/recirc_auto.svg</file>
+               <file>icons/recirc_external.svg</file>
+                <file>icons/recirc_internal.svg</file>
         <file>icons/light/check.svg</file>
         <file>icons/dark/check.svg</file>
         <file>stylesheets/light.qss</file>
