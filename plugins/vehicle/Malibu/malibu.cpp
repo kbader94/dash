@@ -159,70 +159,58 @@ bool Malibu::init(ICANBus *)
 
 MalibuHVAC::MalibuHVAC()
 {
-    // TODO: list serial devices, handshake with em to
 
     const auto infos = QSerialPortInfo::availablePorts();
     QString portName;
     bool connected = false;
 
     if (!serial_.setBaudRate(QSerialPort::Baud115200))
-        qDebug() << serial_.errorString();
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
     if (!serial_.setDataBits(QSerialPort::Data8))
-        qDebug() << serial_.errorString();
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
     if (!serial_.setParity(QSerialPort::NoParity))
-        qDebug() << serial_.errorString();
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
     if (!serial_.setFlowControl(QSerialPort::HardwareControl))
-        qDebug() << serial_.errorString();
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
     if (!serial_.setStopBits(QSerialPort::OneStop))
-        qDebug() << serial_.errorString();
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
 
     for (const QSerialPortInfo &info : infos)
     {
+        
         portName = info.portName();
-
         serial_.setPortName(portName);
 
-        if (!serial_.open(QIODevice::ReadWrite))
-        {
-            qDebug() << serial_.errorString();
-            continue;
-        }
-        QByteArray readData = serial_.readAll();
-
-        while (serial_.waitForReadyRead(200))
-            readData.append(serial_.readAll());
-
-        if (readData.contains(QByteArray::fromStdString("MalibuHV")))
-        {
+        if(serial_.open(QIODevice::ReadWrite) && info.description().contains("Arduino Due Prog. Port")){
+            qDebug() << "[HVAC][LIN] Connection successfully established on " << info.systemLocation();
             connected = true;
             break;
+        } else {
+            qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
+            continue;
         }
+  
     }
 
     if (!connected)
     {
-        qDebug() << "WARNING: no HVAC LIN device found";
+        qDebug() << "[HVAC][LIN] no device found";
     }
-    else
+
+    connect(&serial_, &QSerialPort::readyRead, [&]
     {
-        qDebug() << "SUCCESS! Malibu LIN device found! :)";
-    }
+        qDebug() << "[HVAC][LIN] data available: " << serial_.bytesAvailable();
+        QByteArray datas = serial_.readAll();
+        qDebug() << datas;
+        read_buffer.append(datas);
+        process_serial_data();
+    });
 
-    QObject::connect(&serial_, &QSerialPort::readyRead, [&]
-                     {
-                         qDebug() << "New data available: " << serial_.bytesAvailable();
-                         QByteArray datas = serial_.readAll();
-                         qDebug() << datas;
-                         read_buffer.append(datas);
-                         process_serial_data(); });
-
-    QObject::connect(&serial_,
-                     static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
-                     [&](QSerialPort::SerialPortError error)
-                     {
-                         // this is called when a serial communication error occurs
-                         qDebug() << "An error occured: " << error;
-                     });
+    connect(&serial_,static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error),
+        [&](QSerialPort::SerialPortError error)
+    {
+        qDebug() << "[HVAC][LIN] ERROR: " << error;
+    });
 }
 
 void MalibuHVAC::increaseDriverTemp(){
@@ -278,6 +266,8 @@ void MalibuHVAC::toggleVentMode()
         case VentMode::feet:
             setVentMode(VentMode::panelFeet);
             break;
+        case VentMode::auto_vent:
+        default:
         case VentMode::panelFeet:
             setVentMode(VentMode::panel);
             break;
@@ -304,14 +294,49 @@ void MalibuHVAC::setVentMode(VentMode mode)
 void MalibuHVAC::toggleAC()
 {
     QByteArray ba = QByteArray(8,0);
-    ba[1] = buttonModeMask1::AC_FULL;
+    ba[1] = buttonMask1::AC_FULL;
     serial_.write(ba);
 }
 
 void MalibuHVAC::toggleRecirc()
 {
     QByteArray ba = QByteArray(8,0);
-    ba[1] = buttonModeMask1::RECIRC;
+    ba[1] = buttonMask1::RECIRC;
+    serial_.write(ba);
+}
+
+void MalibuHVAC::toggleDriverAuto()
+{
+    QByteArray ba = QByteArray(8,0);
+    ba[2] = buttonMask2::DRIVER_AUTO;
+    serial_.write(ba);
+}
+
+void MalibuHVAC::togglePassengerSync()
+{
+    QByteArray ba = QByteArray(8,0);
+    ba[2] = buttonMask2::PASSENGER_SYNC;
+    serial_.write(ba);
+}
+
+void MalibuHVAC::toggleRearDefrost()
+{
+    QByteArray ba = QByteArray(8,0);
+    ba[1] = buttonMask1::REAR_DEFROST;
+    serial_.write(ba);
+}
+
+void MalibuHVAC::toggleDriverHeatedSeat()
+{
+    QByteArray ba = QByteArray(8,0);
+    ba[2] = buttonMask2::DRIVER_HEATED_SEAT;
+    serial_.write(ba);
+}
+
+void MalibuHVAC::togglePassengerHeatedSeat()
+{
+    QByteArray ba = QByteArray(8,0);
+    ba[2] = buttonMask2::PASSENGER_HEATED_SEAT;
     serial_.write(ba);
 }
 
@@ -338,19 +363,27 @@ void MalibuHVAC::process_serial_data()
         read_buffer.remove(0, end_index + 1);
         if (changed)
         {   
-            if(current_status.bytes[0] != frame.bytes[0]) 
-                emit driverTempChanged((int)frame.bytes[0]);
-            if(current_status.bytes[1] != frame.bytes[1])
-                emit passengerTempChanged((int)frame.bytes[1]);
+            if(current_status.driveTemp() != frame.driveTemp()) 
+                emit driverTempChanged(frame.driveTemp());
+            if(current_status.passengerTemp() != frame.passengerTemp())
+                emit passengerTempChanged(frame.passengerTemp());
             if(current_status.acLevel() != frame.acLevel())
                 emit acChanged(frame.acLevel());
             if(current_status.ventMode() != frame.ventMode())
                 emit ventModeChanged(frame.ventMode());
+            if(current_status.recircMode() != frame.recircMode())
+                emit recircChanged(frame.recircMode());
             if(current_status.driverAuto() != frame.driverAuto())
                 emit driverAutoChanged(frame.driverAuto());
             if(current_status.passengerSync() != frame.passengerSync())
                 emit passengerSyncChanged(frame.passengerSync());
-            
+            if(current_status.rearDefrost() != frame.rearDefrost())
+                emit rearDefrostChanged(frame.rearDefrost());
+            if(current_status.driverHeatedSeat() != frame.driverHeatedSeat())
+                emit driverHeatedSeatChanged(frame.driverHeatedSeat());
+            if(current_status.passengerHeatedSeat() != frame.passengerHeatedSeat())
+                emit passengerHeatedSeatChanged(frame.passengerHeatedSeat());
+           
             emit statusChanged();
 
             current_status = frame;
@@ -373,25 +406,80 @@ StatusFrame::StatusFrame()
     bytes = QByteArray(8,(char)0);
 }
 
+uint8_t StatusFrame::driveTemp()
+{
+    return bytes[0];
+}
+
+uint8_t StatusFrame::passengerTemp()
+{
+    return bytes[1];
+}
+
 ACLevel StatusFrame::acLevel()
 {
-    if(bytes[2] & statusModeMask1::AC_FULL) return ACLevel::max;
-    if(bytes[4] & statusModeMask2::AC_ECO) return ACLevel::eco;
+    if(bytes[2] & statusMask2::AC_FULL) return ACLevel::max;
+    if(bytes[4] & statusMask4::AC_ECO) return ACLevel::eco;
     return ACLevel::off;
 }
 
 VentMode StatusFrame::ventMode()
 {
-    if(bytes[6] & statusModeMask3::DEFROST_FEET) return VentMode::defrostFeet;
-    if(bytes[2] & statusModeMask1::PANEL_FEET) return VentMode::panelFeet;
-    if(bytes[2] & statusModeMask1::FEET) return VentMode::feet;
-    if(bytes[2] & statusModeMask1::DEFROST) return VentMode::defrost;
-    return VentMode::panel;
+    if(bytes[6] & statusMask6::DEFROST_FEET) return VentMode::defrostFeet;
+    if(bytes[2] & statusMask2::PANEL_FEET) return VentMode::panelFeet;
+    if(bytes[2] & statusMask2::FEET) return VentMode::feet;
+    if(bytes[2] & statusMask2::DEFROST) return VentMode::defrost;
+    if(bytes[2] & statusMask2::PANEL) return VentMode::panel;
+    return VentMode::auto_vent;
 }
 
 RecircMode StatusFrame::recircMode()
 {
-    if(bytes[2] & statusModeMask1::RECIRC) return RecircMode::external;
-    return RecircMode::automatic;
+    if(bytes[2] & statusMask2::RECIRC) return RecircMode::external;
+    return RecircMode::auto_recirc;
 }
 
+bool StatusFrame::driverAuto()
+{
+    return (bytes[4] & statusMask4::DRIVER_AUTO);
+}
+
+bool StatusFrame::passengerSync()
+{
+    return (bytes[4] & statusMask4::PASSENGER_SYNC);
+}
+
+bool StatusFrame::rearDefrost()
+{
+    return (bytes[2] & statusMask2::REAR_DEFROST);
+}
+
+int StatusFrame::driverHeatedSeat()
+{
+
+    if(bytes[3] & statusMask3::DRIVER_SEAT_HIGH &&
+        bytes[3] & statusMask3::DRIVER_SEAT_MEDIUM &&
+        bytes[3] & statusMask3::DRIVER_SEAT_LOW) return 3;
+
+    if(bytes[3] & statusMask3::DRIVER_SEAT_MEDIUM &&
+        bytes[3] & statusMask3::DRIVER_SEAT_LOW) return 2;
+
+    if(bytes[3] & statusMask3::DRIVER_SEAT_LOW) return 1;
+
+    return 0;
+
+}
+
+int StatusFrame::passengerHeatedSeat()
+{
+    if(bytes[4] & statusMask4::PASSENGER_SEAT_HIGH &&
+        bytes[3] & statusMask3::PASSENGER_SEAT_MEDIUM &&
+        bytes[3] & statusMask3::PASSENGER_SEAT_LOW) return 3;
+
+    if(bytes[3] & statusMask3::PASSENGER_SEAT_MEDIUM &&
+        bytes[3] & statusMask3::PASSENGER_SEAT_LOW) return 2;
+
+    if(bytes[3] & statusMask3::PASSENGER_SEAT_LOW) return 1;
+
+    return 0;
+}

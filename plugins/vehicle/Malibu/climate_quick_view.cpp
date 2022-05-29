@@ -15,6 +15,7 @@
 #include "app/arbiter.hpp"
 #include "app/widgets/dialog.hpp"
 #include "climate_quick_view.hpp"
+#include "vent_mode.hpp"
 
 ClimateControls::ClimateControls(Arbiter &arbiter)
     : QFrame(), QuickView(arbiter, "Climate_Combo", this, true)
@@ -28,12 +29,37 @@ void ClimateControls::init()
     int ico_size = 32;
     horizontalLayout = new QHBoxLayout(this);
 
+    auto_icon_engine_off = new StylizedIconEngine(this->arbiter, QString(":/icons/auto.svg"), false);
+    auto_icon_engine_on = new StylizedIconEngine(this->arbiter, QString(":/icons/auto.svg"), true);
+    auto_on_icon = QIcon(auto_icon_engine_on);
+    auto_off_icon = QIcon(auto_icon_engine_off);
+
+    ac_max_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_max.svg"), true);
+    ac_max_icon = QIcon(ac_max_icon_engine);
+    ac_eco_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_eco.svg"), true);
+    ac_eco_icon = QIcon(ac_eco_icon_engine);
+    ac_off_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_off.svg"), false);
+    ac_off_icon = QIcon(ac_off_icon_engine);
+    seat_off_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_off.svg"), false);
+    seat_off_icon = QIcon(seat_off_icon_engine);
+    seat_1_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_1.svg"), true);
+    seat_1_icon = QIcon(seat_1_icon_engine);
+    seat_2_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_2.svg"), true);
+    seat_2_icon = QIcon(seat_2_icon_engine);
+    seat_3_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_3.svg"), true);
+    seat_3_icon = QIcon(seat_3_icon_engine);
+
+    defrost_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/rear-window-defrost.svg"), true);
+    defrost_icon = QIcon(defrost_icon_engine);
+
     horizontalLayout->setContentsMargins(0, 0, 0, 0);
     horizontalLayout->setSpacing(0);
     horizontalLayout->addStretch();
 
     autoButton = new QPushButton(this);
-    autoButton->setText("auto");
+    autoButton->setCheckable(true);
+    autoButton->setFlat(true);
+    this->arbiter.forge().iconize(auto_on_icon, autoButton, 32);
     horizontalLayout->addWidget(autoButton);
 
     tempDownButton = new QPushButton(this);
@@ -59,8 +85,6 @@ void ClimateControls::init()
     driverSeatButton = new QPushButton(this);
     driverSeatButton->setFlat(true);
     driverSeatButton->setCheckable(true);
-    driverSeatButton->setProperty("color_hint", true);
-    driverSeatButton->setProperty("base_color", true);
     this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), driverSeatButton, ico_size);
     horizontalLayout->addWidget(driverSeatButton);
 
@@ -69,16 +93,16 @@ void ClimateControls::init()
     acButton = new QPushButton(this);
     acButton->setFlat(true);
     acButton->setCheckable(true);
-    acButton->setProperty("color_hint", true);
-    acButton->setProperty("base_color", true);
     this->arbiter.forge().iconize(QString::fromUtf8("ac_off"), acButton, ico_size);
     horizontalLayout->addWidget(acButton);
 
     climateState = new ClimateState(this->arbiter, this);
+  //  climateState = new VentModeWidget(this->arbiter, this);
     horizontalLayout->addWidget(climateState);
-    auto climate_dialog = new ClimateDialog(this->arbiter, false, climateState);
+    //auto climate_dialog = new ClimateDialog(this->arbiter, false, climateState);
 
     fanSpeedDownButton = new QPushButton(this);
+    fanSpeedDownButton->setFlat(true);
     fanSpeedDownButton->setText("-");
     horizontalLayout->addWidget(fanSpeedDownButton);
     fan_speed = new StepMeter(this->arbiter, this);
@@ -86,22 +110,18 @@ void ClimateControls::init()
     fan_speed->set_bars(0);
     horizontalLayout->addWidget(fan_speed);
     fanSpeedUpButton = new QPushButton(this);
+    fanSpeedUpButton->setFlat(true);
     fanSpeedUpButton->setText("+");
     horizontalLayout->addWidget(fanSpeedUpButton);
 
     defrostButton = new QPushButton(this);
     defrostButton->setFlat(true);
     defrostButton->setCheckable(true);
-    defrostButton->setProperty("color_hint", true);
-    defrostButton->setProperty("base_color", true);
-    this->arbiter.forge().iconize(QString::fromUtf8("rear-window-defrost"), defrostButton, ico_size);
+    this->arbiter.forge().iconize(defrost_icon, defrostButton, ico_size);
     horizontalLayout->addWidget(defrostButton);
 
     recircButton = new QPushButton(this);
     recircButton->setFlat(true);
-    recircButton->setCheckable(true);
-    recircButton->setProperty("color_hint", true);
-    recircButton->setProperty("base_color", true);
     this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, ico_size);
     horizontalLayout->addWidget(recircButton);
 
@@ -110,8 +130,6 @@ void ClimateControls::init()
     passengerSeatButton = new QPushButton(this);
     passengerSeatButton->setFlat(true);
     passengerSeatButton->setCheckable(true);
-    passengerSeatButton->setProperty("color_hint", true);
-    passengerSeatButton->setProperty("base_color", true);
     this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), passengerSeatButton, ico_size);
     horizontalLayout->addWidget(passengerSeatButton);
 
@@ -136,11 +154,14 @@ void ClimateControls::init()
     horizontalLayout->addWidget(passengerTempUpButton);
 
     syncButton = new QPushButton(this);
-    syncButton->setText("sync");
+    syncButton->setCheckable(true);
+    syncButton->setFlat(true);
+    this->arbiter.forge().iconize(auto_on_icon, syncButton, 32);
     horizontalLayout->addWidget(syncButton);
 
     horizontalLayout->addStretch();
 
+    /***** BUTTON EVENTS ******/
     connect(tempUpButton, &QPushButton::clicked, [this]
     {
         HVAC->increaseDriverTemp();
@@ -166,6 +187,11 @@ void ClimateControls::init()
         HVAC->toggleAC();
     });
 
+    connect(climateState, &ClimateState::clicked, [this]()
+    {
+        HVAC->toggleVentMode();
+    });
+
     connect(fanSpeedDownButton, &QPushButton::clicked, [this]
     {
         HVAC->decreaseFan();
@@ -181,64 +207,202 @@ void ClimateControls::init()
         HVAC->toggleRecirc();
     });
 
-
-    connect(defrostButton, &QAbstractButton::toggled, [this](bool enabled)
+    connect(defrostButton, &QPushButton::clicked, [this]()
     {
-               //this->defrostButton->setVisible(this->arbiter.vic().climate->toggleRDefrost());
-              qDebug() << "toggled defrost" << enabled;
+        HVAC->toggleRearDefrost();
     });
 
-    connect(HVAC, &MalibuHVAC::driverTempChanged,[this](int temp){
-        this->tempLabel->setText(QString::number(temp));
+    connect(driverSeatButton, &QPushButton::clicked, [this]()
+    {
+        HVAC->toggleDriverHeatedSeat();
     });
 
-    connect(HVAC, &MalibuHVAC::passengerTempChanged, [this](int temp){
-        this->passengerTempLabel->setText(QString::number(temp));
+    connect(passengerSeatButton, &QPushButton::clicked, [this]()
+    {
+        HVAC->togglePassengerHeatedSeat();
+    });
+
+    connect(autoButton, &QPushButton::clicked, [this]()
+    {
+        HVAC->toggleDriverAuto();
+    });
+
+    connect(syncButton, &QPushButton::clicked, [this]()
+    {
+        HVAC->togglePassengerSync();
+    });
+
+    /******* HVAC EVENTS ********/
+    connect(HVAC, &MalibuHVAC::driverTempChanged,[this](uint temp){
+        this->tempLabel->setText(QString::number(temp) + "°C");
+        if(temp == 253) this->tempLabel->setText("MIN");
+        if(temp == 254) this->tempLabel->setText("MAX");
+    });
+
+    connect(HVAC, &MalibuHVAC::passengerTempChanged, [this](uint temp){
+        this->passengerTempLabel->setText(QString::number(temp) + "°C");
+        if(temp == 253) this->passengerTempLabel->setText("MIN");
+        if(temp == 254) this->passengerTempLabel->setText("MAX");
     });
 
     connect(HVAC, &MalibuHVAC::ventModeChanged, [this](VentMode mode){
+        if(mode == VentMode::auto_vent){
+            climateState->toggle_body(false);
+            climateState->toggle_feet(false);
+            climateState->toggle_defrost(false);
+            climateState->toggle_auto(true);
+        }
         if(mode == VentMode::defrost){
+            climateState->toggle_auto(false);
             climateState->toggle_body(false);
             climateState->toggle_feet(false);
             climateState->toggle_defrost(true);
         }
         if(mode == VentMode::defrostFeet){
+            climateState->toggle_auto(false);
             climateState->toggle_body(false);
             climateState->toggle_feet(true);
             climateState->toggle_defrost(true);
         }
         if(mode == VentMode::feet){
+            climateState->toggle_auto(false);
             climateState->toggle_body(false);
             climateState->toggle_feet(true);
             climateState->toggle_defrost(false);
         }
         if(mode == VentMode::panel){
+            climateState->toggle_auto(false);
             climateState->toggle_body(true);
             climateState->toggle_feet(false);
             climateState->toggle_defrost(false);
         }
         if(mode == VentMode::panelFeet){
+            climateState->toggle_auto(false);
             climateState->toggle_body(true);
             climateState->toggle_feet(true);
             climateState->toggle_defrost(false);
         }
        
     });
-                //this->setTemp(
-                 //this->arbiter.vic().climate->decreaseTemp()); });
 
-    //   connect(fan_speed, &StepMeter::pressed, [this]() {
-    //   if(this->fan_speed->get_value() == 4)
-    //       this->fan_speed->set_bars(0);
-    //   else
-    //       this->fan_speed->set_bars(this->fan_speed->get_value() + 1);
+    connect(HVAC, &MalibuHVAC::acChanged,[this](ACLevel level)
+    {
+        switch(level)
+        {
+            case max:
+                {
+                    this->arbiter.forge().iconize(ac_max_icon, acButton, 32);
+                    acButton->setChecked(true);
+                }
+                break;
+                
+            case eco:
+                {
+               
+                    this->arbiter.forge().iconize(ac_eco_icon, acButton, 32);
+                    acButton->setChecked(true);
+                }
+                break;
 
-    //  });
+            default:
+                this->arbiter.forge().iconize(ac_off_icon, acButton, 32);
+                acButton->setChecked(false);
+                break;
 
-} // setupUi
+        }
+    });
 
-void ClimateControls::setTemp(double temp)
-{
-    qDebug("Setting temp");
-    this->tempLabel->setText(QString::number(temp) + QString("°C"));
-}
+    connect(HVAC, &MalibuHVAC::driverAutoChanged, [this](bool enabled){
+        if(enabled){
+            
+            this->arbiter.forge().iconize(auto_on_icon, autoButton, 32);
+            autoButton->setChecked(true);
+        } else {
+            this->arbiter.forge().iconize(auto_off_icon, autoButton, 32);
+            autoButton->setChecked(false);
+        }
+    });
+
+    connect(HVAC, &MalibuHVAC::passengerSyncChanged, [this](bool enabled){
+        if(enabled){
+           
+            this->arbiter.forge().iconize(auto_on_icon, syncButton, 32);
+            syncButton->setChecked(true);
+        } else {
+           
+            this->arbiter.forge().iconize(auto_off_icon, syncButton, 32);
+            syncButton->setChecked(false);
+        }
+    });
+    
+    connect(HVAC, &MalibuHVAC::driverHeatedSeatChanged, [this](int level){
+        if(level == 0){
+         
+            this->arbiter.forge().iconize(seat_off_icon, driverSeatButton, 32);
+            driverSeatButton->setChecked(false);
+        }
+
+        if(level == 1){
+            this->arbiter.forge().iconize(seat_1_icon, driverSeatButton, 32);
+            driverSeatButton->setChecked(true);
+        }
+
+        if(level == 2){
+           
+            this->arbiter.forge().iconize(seat_2_icon, driverSeatButton, 32);
+            driverSeatButton->setChecked(true);
+        }
+
+        if(level == 3){
+    
+            this->arbiter.forge().iconize(seat_3_icon, driverSeatButton, 32);
+            driverSeatButton->setChecked(true);
+        }
+    });
+
+    connect(HVAC, &MalibuHVAC::passengerHeatedSeatChanged, [this](int level){
+        if(level == 0){
+          
+            this->arbiter.forge().iconize(seat_off_icon, passengerSeatButton, 32);
+            passengerSeatButton->setChecked(false);
+        }
+
+        if(level == 1){
+           
+            this->arbiter.forge().iconize(seat_1_icon, passengerSeatButton, 32);
+            passengerSeatButton->setChecked(true);
+        }
+
+        if(level == 2){
+           
+            this->arbiter.forge().iconize(seat_2_icon, passengerSeatButton, 32);
+            passengerSeatButton->setChecked(true);
+        }
+
+        if(level == 3){
+            
+            this->arbiter.forge().iconize(seat_3_icon, passengerSeatButton, 32);
+            passengerSeatButton->setChecked(true);
+        }
+    });
+    
+    connect(HVAC, &MalibuHVAC::recircChanged, [this](RecircMode mode)
+    {
+        if(mode == RecircMode::auto_recirc){
+             this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, 32);
+
+        } else {
+             this->arbiter.forge().iconize(QString::fromUtf8("recirc_internal"), recircButton, 32);
+        }
+    });
+
+    connect(HVAC, &MalibuHVAC::rearDefrostChanged, [this](bool enabled)
+    {
+        if(enabled){
+            defrostButton->setChecked(true);
+        }else {
+            defrostButton->setChecked(false);
+        }
+    });
+
+} 

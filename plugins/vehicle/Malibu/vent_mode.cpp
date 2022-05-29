@@ -5,31 +5,26 @@
 
 #include "app/arbiter.hpp"
 
-#include "app/widgets/climate_state.hpp"
+#include "vent_mode.hpp"
 
-ClimateState::ClimateState(Arbiter &arbiter, QWidget *parent)
+VentModeWidget::VentModeWidget(Arbiter &arbiter, QWidget *parent)
     : QFrame(parent)
     , climate_ref(QIcon(":/icons/climate_ref.svg").pixmap(512, 512))
     , defrost(QIcon(":/icons/defrost.svg").pixmap(512, 512))
     , body(QIcon(":/icons/chevron_right.svg").pixmap(512, 512))
     , feet(QIcon(":/icons/expand_more.svg").pixmap(512, 512))
-    , auto_climate(QIcon(":/icons/auto.svg").pixmap(512,512))
 {
     this->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     this->scale = arbiter.layout().scale;
 }
 
-QSize ClimateState::sizeHint() const
+QSize VentModeWidget::sizeHint() const
 {
     return QSize(this->height(), this->height());
 }
 
-void ClimateState::mousePressEvent(QMouseEvent *event){
-    emit clicked();
-}
-
-void ClimateState::paintEvent(QPaintEvent *)
+void VentModeWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
 
@@ -44,14 +39,6 @@ void ClimateState::paintEvent(QPaintEvent *)
         this->climate_ref.setMask(mask);
     }
     painter.drawPixmap(x_offset, y_offset, this->climate_ref.scaled(ref_size, ref_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-
-    if(this->auto_climate_state){
-        QBitmap mask(this->auto_climate.createMaskFromColor(Qt::transparent));
-        this->auto_climate.fill(this->color);
-        this->auto_climate.setMask(mask);
-        painter.drawPixmap(x_offset, y_offset, this->auto_climate.scaled(state_size, state_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-        return;
-    }
 
     if (this->defrost_state) {
         QBitmap mask(this->defrost.createMaskFromColor(Qt::transparent));
@@ -75,25 +62,19 @@ void ClimateState::paintEvent(QPaintEvent *)
     }
 }
 
-void ClimateState::toggle_auto(bool enabled)
-{
-    this->auto_climate_state = enabled;
-    this->update();
-}
-
-void ClimateState::toggle_defrost(bool enabled)
+void VentModeWidget::toggle_defrost(bool enabled)
 {
     this->defrost_state = enabled;
     this->update();
 }
 
-void ClimateState::toggle_body(bool enabled)
+void VentModeWidget::toggle_body(bool enabled)
 {
     this->body_state = enabled;
     this->update();
 }
 
-void ClimateState::toggle_feet(bool enabled)
+void VentModeWidget::toggle_feet(bool enabled)
 {
     this->feet_state = enabled;
     this->update();

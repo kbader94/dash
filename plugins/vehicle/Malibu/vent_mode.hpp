@@ -5,14 +5,15 @@
 
 #include "app/config.hpp"
 
+
 class Arbiter;
 
-class ClimateState : public QFrame {
+class VentModeWidget : public QFrame {
     Q_OBJECT
     Q_PROPERTY(QColor color READ get_color WRITE set_color)
 
    public:
-    ClimateState(Arbiter &arbiter, QWidget *parent = nullptr);
+    VentModeWidget(Arbiter &arbiter, QWidget *parent = nullptr);
 
     QSize sizeHint() const override;
     QColor get_color() { return this->color; };
@@ -20,14 +21,13 @@ class ClimateState : public QFrame {
     void toggle_defrost(bool enabled);
     void toggle_body(bool enabled);
     void toggle_feet(bool enabled);
-    void toggle_auto(bool enabled);
 
-    signals:
-     void clicked();
+  //  signals:
+  //   void clicked();
 
    protected:
     void paintEvent(QPaintEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
+   // void mousePressEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event)
     {
         // idk why this works but oh 🐳
@@ -40,7 +40,6 @@ class ClimateState : public QFrame {
     bool defrost_state = false;
     bool body_state = false;
     bool feet_state = false;
-    bool auto_climate_state = false;
 
     double scale;
 
@@ -48,5 +47,4 @@ class ClimateState : public QFrame {
     QPixmap defrost;
     QPixmap body;
     QPixmap feet;
-    QPixmap auto_climate;
 };

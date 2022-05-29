@@ -55,6 +55,11 @@
               <file>icons/recirc_auto.svg</file>
                <file>icons/recirc_external.svg</file>
                 <file>icons/recirc_internal.svg</file>
+               <file>icons/auto.svg</file>
+<file>icons/heated_seat_1.svg</file>
+<file>icons/heated_seat_2.svg</file>
+<file>icons/heated_seat_3.svg</file>
+<file>icons/heated_seat_off.svg</file>
         <file>icons/light/check.svg</file>
         <file>icons/dark/check.svg</file>
         <file>stylesheets/light.qss</file>

@@ -13,11 +13,12 @@
 class ClimateControls;
 
 enum ACLevel {off, eco, max};
-enum RecircMode {automatic, recirculate, external};
-enum VentMode {panel, panelFeet, feet, defrost, defrostFeet};
+enum RecircMode {auto_recirc, recirculate, external};
+enum VentMode {auto_vent, panel, panelFeet, feet, defrost, defrostFeet};
 
-namespace buttonModeMask1{
-    enum buttonModeMask1 {
+namespace buttonMask1{
+    enum buttonMask1 {
+        REAR_DEFROST = 0x01,
         AC_FULL = 0x02,
         PANEL = 0x04,
         FEET = 0x08,
@@ -26,13 +27,25 @@ namespace buttonModeMask1{
         DEFROST = 0x80
     };// byte[1] in frame 34
 }
-namespace buttonModeMask2{
-enum buttonModeMask2 {
+
+namespace buttonMask2
+{
+    enum buttonMask2 {
+        DRIVER_HEATED_SEAT = 0x01,
+        PASSENGER_HEATED_SEAT = 0x04,
+        DRIVER_AUTO = 0x10,
+        PASSENGER_SYNC = 0x20
+    };//byte[2] in frame 34
+
+}
+namespace buttonMask4{
+enum buttonMask4 {
     DEFROST_FEET = 0x02
 };//byte[4] in frame 34
 }
-namespace statusModeMask1{
-enum statusModeMask1{
+namespace statusMask2{
+enum statusMask2{
+    REAR_DEFROST = 0x01,
     AC_FULL = 0x02,
     PANEL = 0x04,
     FEET = 0x08,
@@ -42,17 +55,30 @@ enum statusModeMask1{
 };//byte[2] in frame 36
 }
 
-namespace statusModeMask2 {
-enum statusModeMask2{
+namespace statusMask3
+{
+    enum statusMask3
+    {
+        DRIVER_SEAT_LOW = 1 << 0,
+        DRIVER_SEAT_MEDIUM = 1 << 1,
+        DRIVER_SEAT_HIGH = 1 << 2,
+        PASSENGER_SEAT_LOW = 1 << 6,
+        PASSENGER_SEAT_MEDIUM = 1 << 7
+    };
+}
+
+namespace statusMask4 {
+enum statusMask4{
+    PASSENGER_SEAT_HIGH = 0x01,
     DRIVER_AUTO = 0x10,
     PASSENGER_SYNC = 0x20,
-    AC_ECO = 0x40
+    AC_ECO = 0x40,
 
 };//byte[4] in frame 36
 }
 
-namespace {
-enum statusModeMask3{
+namespace statusMask6 {
+enum statusMask6{
     DEFROST_FEET = 0x10
 };// byte[6] in frame 36
 }
@@ -62,13 +88,16 @@ class StatusFrame {
     public: 
      StatusFrame(QByteArray *byteArray);
      StatusFrame();
-     int driveTemp();
-     int passengerTemp();
+     uint8_t driveTemp();
+     uint8_t passengerTemp();
      ACLevel acLevel();
      VentMode ventMode();
      RecircMode recircMode();
      bool driverAuto();
      bool passengerSync();
+     bool rearDefrost();
+     int driverHeatedSeat();
+     int passengerHeatedSeat();
      QByteArray bytes; 
 
 };
@@ -107,13 +136,18 @@ class MalibuHVAC : public QObject {
      void setVentMode(VentMode mode);
      void toggleAC();
      void toggleRecirc();
+     void toggleDriverAuto();
+     void togglePassengerSync();
+     void toggleRearDefrost();
+     void toggleDriverHeatedSeat();
+     void togglePassengerHeatedSeat();
 
     signals:
 
-     void driverTempChanged(int temp);
-     void passengerTempChanged(int temp);
+     void driverTempChanged(uint8_t temp);
+     void passengerTempChanged(uint8_t temp);
      void acChanged(ACLevel level);
-     void recircChanged(RecircMode mode);// get from CAN
+     void recircChanged(RecircMode mode);// get from CAN?
      void driverAutoChanged(bool status);
      void passengerSyncChanged(bool status);
      void rearDefrostChanged(bool status);
