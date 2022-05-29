@@ -90,16 +90,15 @@ QList<QuickView *> Arbiter::get_enabled_quick_views()
 {
     QList<QuickView *> rtn;
     for(QuickView *quick_view : this->layout().control_bar.quick_views()){
-
+        
+        if(quick_view->name() == "none"){
+            rtn.push_front(quick_view);
+            continue;
+        }
         if(this->settings().contains("Layout/ControlBar/" + quick_view->name())){
-            qDebug() << quick_view->name() << " found";
             if(this->settings().value("Layout/ControlBar/" + quick_view->name()) == true){
                 rtn.push_back(quick_view);
-            } else {
-                qDebug() << quick_view->name() << " disabled!";
             }
-        } else {
-             qDebug() << quick_view->name() << " not found";
         }
                 
     }
@@ -135,13 +134,15 @@ void Arbiter::set_curr_page(Page *page)
         return;
     
     this->layout().curr_page = page;
-
+    
     emit curr_page_changed(page);
+    emit curr_page_index_changed(this->layout().page_id(page));
 }
 
 void Arbiter::set_curr_page(int id)
 {
     this->set_curr_page(this->layout().page(id));
+    
 }
 
 void Arbiter::set_page(Page *page, bool enabled)
@@ -158,6 +159,37 @@ void Arbiter::set_page(Page *page, bool enabled)
     this->settings().endGroup();
 
     emit page_changed(page, enabled);
+    emit curr_page_index_changed(this->layout().page_id(page));
+}
+
+int Arbiter::add_page(Page *page, QIcon icon)
+{
+
+    this->layout().add_page(page);
+    emit page_added(page, icon);
+    return this->layout().page_id(page);
+    
+}
+
+int Arbiter::get_curr_page_index()
+{
+
+    return this->layout().page_id(this->layout().curr_page);
+
+}
+
+Page* Arbiter::get_curr_page()
+{
+
+    return this->layout().curr_page;
+
+}
+
+void Arbiter::remove_page(Page *page)
+{
+
+    this->layout().remove_page(page);
+    emit page_removed(page);
 }
 
 void Arbiter::set_brightness_plugin(QString plugin)

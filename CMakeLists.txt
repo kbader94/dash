@@ -42,6 +42,7 @@ find_package(rtaudio REQUIRED)
 find_package(taglib REQUIRED)
 find_package(aasdk REQUIRED)
 find_package(openauto REQUIRED)
+find_package(KF5WindowSystem)
 
 if(RPI_BUILD AND NOT GST_BUILD)
     add_definitions(-DUSE_OMX -DOMX_SKIP64BIT)
@@ -132,6 +133,7 @@ target_link_libraries(dash
     ${Qt5MultimediaWidgets_LIBRARIES}
     ${Qt5Bluetooth_LIBRARIES}
     KF5::BluezQt
+    KF5::WindowSystem
     ${LIBUSB_1_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${BCM_HOST_LIBRARIES}

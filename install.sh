@@ -16,6 +16,7 @@ display_help() {
     echo "   --dash           install and build dash "
     echo "   --h264bitstream  install and build h264bitstream"
     echo "   --debug          create a debug build "
+    echo "   --xsession       make Dash_DE the default xsession"
     echo
 }
 
@@ -48,6 +49,8 @@ if [ $# -gt 0 ]; then
   openauto=false
   dash=false
   h264bitstream=false
+  xsession=false
+=
     while [ "$1" != "" ]; do
         case $1 in
             --deps )           shift
@@ -65,6 +68,8 @@ if [ $# -gt 0 ]; then
                                     ;;
             --debug )          BUILD_TYPE="Debug"
                                     ;;
+            --xsession )       xsession=true
+                                    ;;
             -h | --help )           display_help
                                     exit
                                     ;;
@@ -81,6 +86,7 @@ else
     openauto=true
     dash=true
     h264bitstream=true
+    xsession=true
 fi
 
 script_path=$(dirname "$(realpath -s "$0")")
@@ -132,6 +138,8 @@ dependencies=(
 "libtool"
 "autoconf"
 "ffmpeg"
+"kwin-x11"
+"wmctrl"
 )
 
 
@@ -142,7 +150,8 @@ if [ $deps = false ]
   else
     if [ $BULLSEYE = false ]; then
       echo Adding qt5-default to dependencies
-      dependencies[${#dependencies[@]}]="qt5-default"
+      dependencies[${#dependencies[@]}]="qt5-default"  
+
     fi
     echo installing dependencies
     #loop through dependencies and install
@@ -164,6 +173,31 @@ if [ $deps = false ]
         echo Package failed to install with error code $?, quitting check logs above
         exit 1
     fi
+
+    if [ $BULLSEYE = false ]; then
+
+      if [ $isRpi = true ];
+        then
+          echo Downloading libkf5windowsystem-dev...
+          wget --no-check-certificate libkf5windowsystem-dev_5.54.0-1_armhf.deb https://mirror-prod-debian01.it.su.se/debian/pool/main/k/kwindowsystem/libkf5windowsystem-dev_5.54.0-1_armhf.deb
+          sudo dpkg -i libkf5windowsystem-dev_5.54.0-1_armhf.deb
+      else
+         dependencies[${#dependencies[@]}]="libkf5windowsystem5-dev"
+      fi
+
+    else
+
+      if [ $isRpi = true ];
+       then
+        echo Downloading libkf5windowsystem-dev...
+        wget --no-check-certificate libkf5windowsystem-dev_5.78.0-2_armhf.deb https://mirror-prod-debian01.it.su.se/debian/pool/main/k/kwindowsystem/libkf5windowsystem-dev_5.78.0-2_armhf.deb
+        sudo dpkg -i libkf5windowsystem-dev_5.78.0-2_armhf.deb
+      else
+        dependencies[${#dependencies[@]}]="libkf5windowsystem5-dev"
+      fi
+
+    fi
+
 fi
 
 
@@ -408,21 +442,21 @@ else
   echo Installing openauto
   cd ..
 
-  echo -e cloning openauto'\n'
-  git clone $openautoRepo
-  if [[ $? -eq 0 ]]; then
-    echo -e cloned OK'\n'
-  else
-    cd openauto
-    if [[ $? -eq 0 ]]; then
-      git pull $openautoRepo
-      echo -e Openauto cloned OK'\n'
-      cd ..
-    else
-      echo Openauto clone/pull error
-      exit 1
-    fi
-  fi
+#  echo -e cloning openauto'\n'
+ # git clone $openautoRepo
+ # if [[ $? -eq 0 ]]; then
+ #   echo -e cloned OK'\n'
+ # else
+ #   cd openauto
+  #  if [[ $? -eq 0 ]]; then
+   #   git pull $openautoRepo
+    #  echo -e Openauto cloned OK'\n'
+     # cd ..
+   # else
+   #   echo Openauto clone/pull error
+   #   exit 1
+   # fi
+ # fi
 
   cd openauto
 
@@ -542,9 +576,26 @@ else
 
   fi
 
-
+  if [ $xsession = false ]; then
   #Start app
   echo Starting app
   cd ../bin
   ./dash
+  fi
+fi
+
+if [ $xsession = true ]; then
+
+    echo -e Installing Open Dash as default Desktop Environment '\n'
+    sudo cp .xsession ~/
+    binPath="$(pwd)/bin/dash"
+    cd /
+    printf '%s\n' "$binPath"
+    sudo ln -s $binPath /bin/dash_DE
+
+  #restart
+  sudo reboot
+
+else
+    echo -e Skipping setup as default Desktop Environment '\n'
 fi

@@ -32,11 +32,13 @@ void AAHandler::injectButtonPressHelper(aasdk::proto::enums::ButtonCode::Enum bu
 void AAHandler::mediaPlaybackUpdate(const aasdk::proto::messages::MediaInfoChannelPlaybackData& playback)
 {
     emit aa_media_playback_update(playback);
+    
 }
 
 void AAHandler::mediaMetadataUpdate(const aasdk::proto::messages::MediaInfoChannelMetadataData& metadata)
 {
     emit aa_media_metadata_update(metadata);
+    
 }
 
 

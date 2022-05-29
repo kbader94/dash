@@ -40,3 +40,20 @@ cd dash
 
 ./install.sh
 ```
+# HOME LAUNCHER
+
+The new Home launcher is meant to basically turn Open Dash into a full linux DE.
+It features an "Android style" app launcher that automatically lists all apps on your system.
+It's capable of launching the apps, switching between them, and ending them when needed. 
+Unfortunately due to the low level requirements of a DE, this launcher is tightly integrated and currently only works
+with KDE's KWIN window manager. Additionally it currently depends on wmctrl to close windows, though this is just temporary.
+
+## Launcher Installation & Use
+1) Install KDE on your system and install wmctrl.
+2) Launch into a KDE session, install OpenDash via the install instructions above.
+3) Select the Home Launcher from the launcher settings dialog.
+
+### The Home Launcher modifies the KWIN window rules to set the size and position of windows within open dash
+### To revert back to your system's original settings, open the KDE window rules setting app and delete the rule named dash
+
+

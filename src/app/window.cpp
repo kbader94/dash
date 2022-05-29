@@ -53,6 +53,16 @@ Dash::Dash(Arbiter &arbiter)
         if ((this->arbiter.layout().curr_page == page) && !enabled)
             this->arbiter.set_curr_page(this->arbiter.layout().next_enabled_page(page));
     });
+    connect(&this->arbiter, &Arbiter::page_added, [this](Page *page, QIcon icon){
+        this->add_page(page, icon);
+    });
+ 
+    connect(&this->arbiter, &Arbiter::page_removed, [this](Page *page){
+
+        this->remove_page(page);
+
+    });
+
 }
 
 void Dash::init()
@@ -78,6 +88,39 @@ void Dash::init()
         button->setVisible(page->enabled());
     }
     this->set_page(this->arbiter.layout().curr_page);
+    this->arbiter.initialized = true;
+}
+
+int Dash::add_page(Page *page, QIcon icon){
+    auto button = page->button();
+    button->setCheckable(true);
+    button->setFlat(true);
+    this->arbiter.forge().iconize(icon, button, 32);
+
+    this->rail.group.addButton(button, this->arbiter.layout().page_id(page));
+    this->rail.layout->addWidget(button);
+    this->body.frame->addWidget(page->widget());
+
+    page->init();
+    button->setVisible(page->enabled());
+    return 0;
+}
+
+void Dash::remove_page(Page *page){
+    auto button = page->button();
+    auto buttonId = rail.group.id(button);
+    this->rail.group.removeButton(button);
+
+    //reassign button ID's
+    for(int i = buttonId; i < rail.group.buttons().length(); i++){
+        auto currentButton = rail.group.buttons()[i];
+        rail.group.setId(currentButton, i);
+    }
+    this->rail.layout->removeWidget(button);
+    delete button;
+    this->body.frame->removeWidget(page->widget());
+    //delete page;
+
 }
 
 void Dash::set_page(Page *page)
@@ -195,6 +238,7 @@ Window::Window()
     this->setCentralWidget(stack);
 
     auto dash = new Dash(this->arbiter);
+    dash->setAttribute(Qt::WA_X11NetWmWindowTypeDesktop);
     stack->addWidget(dash);
     dash->init();
 

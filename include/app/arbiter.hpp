@@ -32,6 +32,10 @@ class Arbiter : public QObject {
     bool is_quick_view_enabled(QuickView *quick_view);
     void set_curr_page(Page *page);
     void set_curr_page(int id);
+    int get_curr_page_index();
+    Page* get_curr_page();
+    int add_page(Page *page, QIcon icon);
+    void remove_page(Page *page);
     void set_page(Page *page, bool enabled);
     void set_brightness_plugin(QString plugin);
     void set_brightness(uint8_t brightness);
@@ -44,6 +48,7 @@ class Arbiter : public QObject {
     void set_action(Action *action, QString key);
     void send_openauto_button_press(aasdk::proto::enums::ButtonCode::Enum buttonCode, openauto::projection::WheelDirection wheelDirection = openauto::projection::WheelDirection::NONE);
     void send_openauto_full_screen(bool fullscreen = true);
+    bool initialized = false;
 
     QMainWindow *window() { return this->window_; }
     QSettings &settings() { return this->session_.settings_; }
@@ -67,7 +72,10 @@ class Arbiter : public QObject {
     void curr_quick_view_changed(QuickView *quick_view);
     void quick_views_changed(QList<QuickView *> quick_views);
     void curr_page_changed(Page *page);
+    void curr_page_index_changed(int index);
     void page_changed(Page *page, bool enabled);
+    void page_added(Page *page, QIcon icon);
+    void page_removed(Page *page);
     void brightness_plugin_changed(QString plugin);
     void brightness_changed(uint8_t brightness);
     void volume_changed(uint8_t volume);
