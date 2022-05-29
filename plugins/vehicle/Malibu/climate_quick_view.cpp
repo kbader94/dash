@@ -26,26 +26,30 @@ void ClimateControls::init()
 {
     /*LAYOUT */
     HVAC = new MalibuHVAC();
-    int ico_size = 32;
+    int icon_size = 26 * arbiter.layout().scale;
     horizontalLayout = new QHBoxLayout(this);
 
-    auto_icon_engine_off = new StylizedIconEngine(this->arbiter, QString(":/icons/auto.svg"), false);
     auto_icon_engine_on = new StylizedIconEngine(this->arbiter, QString(":/icons/auto.svg"), true);
     auto_on_icon = QIcon(auto_icon_engine_on);
-    auto_off_icon = QIcon(auto_icon_engine_off);
 
     ac_max_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_max.svg"), true);
     ac_max_icon = QIcon(ac_max_icon_engine);
+    
     ac_eco_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_eco.svg"), true);
     ac_eco_icon = QIcon(ac_eco_icon_engine);
+
     ac_off_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/ac_off.svg"), false);
     ac_off_icon = QIcon(ac_off_icon_engine);
+
     seat_off_icon_engine = new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_off.svg"), false);
     seat_off_icon = QIcon(seat_off_icon_engine);
+
     seat_1_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_1.svg"), true);
     seat_1_icon = QIcon(seat_1_icon_engine);
+
     seat_2_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_2.svg"), true);
     seat_2_icon = QIcon(seat_2_icon_engine);
+
     seat_3_icon_engine =  new StylizedIconEngine(this->arbiter, QString(":/icons/heated_seat_3.svg"), true);
     seat_3_icon = QIcon(seat_3_icon_engine);
 
@@ -59,7 +63,7 @@ void ClimateControls::init()
     autoButton = new QPushButton(this);
     autoButton->setCheckable(true);
     autoButton->setFlat(true);
-    this->arbiter.forge().iconize(auto_on_icon, autoButton, 32);
+    this->arbiter.forge().iconize(auto_on_icon, autoButton, icon_size);
     horizontalLayout->addWidget(autoButton);
 
     tempDownButton = new QPushButton(this);
@@ -85,7 +89,7 @@ void ClimateControls::init()
     driverSeatButton = new QPushButton(this);
     driverSeatButton->setFlat(true);
     driverSeatButton->setCheckable(true);
-    this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), driverSeatButton, ico_size);
+    this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), driverSeatButton, icon_size);
     horizontalLayout->addWidget(driverSeatButton);
 
     horizontalLayout->addStretch();
@@ -93,13 +97,11 @@ void ClimateControls::init()
     acButton = new QPushButton(this);
     acButton->setFlat(true);
     acButton->setCheckable(true);
-    this->arbiter.forge().iconize(QString::fromUtf8("ac_off"), acButton, ico_size);
+    this->arbiter.forge().iconize(QString::fromUtf8("ac_off"), acButton, icon_size);
     horizontalLayout->addWidget(acButton);
 
     climateState = new ClimateState(this->arbiter, this);
-  //  climateState = new VentModeWidget(this->arbiter, this);
     horizontalLayout->addWidget(climateState);
-    //auto climate_dialog = new ClimateDialog(this->arbiter, false, climateState);
 
     fanSpeedDownButton = new QPushButton(this);
     fanSpeedDownButton->setFlat(true);
@@ -117,12 +119,12 @@ void ClimateControls::init()
     defrostButton = new QPushButton(this);
     defrostButton->setFlat(true);
     defrostButton->setCheckable(true);
-    this->arbiter.forge().iconize(defrost_icon, defrostButton, ico_size);
+    this->arbiter.forge().iconize(defrost_icon, defrostButton, icon_size);
     horizontalLayout->addWidget(defrostButton);
 
     recircButton = new QPushButton(this);
     recircButton->setFlat(true);
-    this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, ico_size);
+    this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, icon_size);
     horizontalLayout->addWidget(recircButton);
 
     horizontalLayout->addStretch();
@@ -130,7 +132,7 @@ void ClimateControls::init()
     passengerSeatButton = new QPushButton(this);
     passengerSeatButton->setFlat(true);
     passengerSeatButton->setCheckable(true);
-    this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), passengerSeatButton, ico_size);
+    this->arbiter.forge().iconize(QString::fromUtf8("heated_seat"), passengerSeatButton, icon_size);
     horizontalLayout->addWidget(passengerSeatButton);
 
     passengerTempDownButton = new QPushButton(this);
@@ -156,7 +158,7 @@ void ClimateControls::init()
     syncButton = new QPushButton(this);
     syncButton->setCheckable(true);
     syncButton->setFlat(true);
-    this->arbiter.forge().iconize(auto_on_icon, syncButton, 32);
+    this->arbiter.forge().iconize(auto_on_icon, syncButton, icon_size);
     horizontalLayout->addWidget(syncButton);
 
     horizontalLayout->addStretch();
@@ -285,13 +287,13 @@ void ClimateControls::init()
        
     });
 
-    connect(HVAC, &MalibuHVAC::acChanged,[this](ACLevel level)
+    connect(HVAC, &MalibuHVAC::acChanged,[this, icon_size](ACLevel level)
     {
         switch(level)
         {
             case max:
                 {
-                    this->arbiter.forge().iconize(ac_max_icon, acButton, 32);
+                    this->arbiter.forge().iconize(ac_max_icon, acButton, icon_size);
                     acButton->setChecked(true);
                 }
                 break;
@@ -299,13 +301,13 @@ void ClimateControls::init()
             case eco:
                 {
                
-                    this->arbiter.forge().iconize(ac_eco_icon, acButton, 32);
+                    this->arbiter.forge().iconize(ac_eco_icon, acButton, icon_size);
                     acButton->setChecked(true);
                 }
                 break;
 
             default:
-                this->arbiter.forge().iconize(ac_off_icon, acButton, 32);
+                this->arbiter.forge().iconize(ac_off_icon, acButton, icon_size);
                 acButton->setChecked(false);
                 break;
 
@@ -314,85 +316,70 @@ void ClimateControls::init()
 
     connect(HVAC, &MalibuHVAC::driverAutoChanged, [this](bool enabled){
         if(enabled){
-            
-            this->arbiter.forge().iconize(auto_on_icon, autoButton, 32);
             autoButton->setChecked(true);
         } else {
-            this->arbiter.forge().iconize(auto_off_icon, autoButton, 32);
             autoButton->setChecked(false);
         }
     });
 
     connect(HVAC, &MalibuHVAC::passengerSyncChanged, [this](bool enabled){
         if(enabled){
-           
-            this->arbiter.forge().iconize(auto_on_icon, syncButton, 32);
             syncButton->setChecked(true);
         } else {
-           
-            this->arbiter.forge().iconize(auto_off_icon, syncButton, 32);
             syncButton->setChecked(false);
         }
     });
     
-    connect(HVAC, &MalibuHVAC::driverHeatedSeatChanged, [this](int level){
-        if(level == 0){
-         
-            this->arbiter.forge().iconize(seat_off_icon, driverSeatButton, 32);
+    connect(HVAC, &MalibuHVAC::driverHeatedSeatChanged, [this, icon_size](int level){
+        if(level == 0){      
+            this->arbiter.forge().iconize(seat_off_icon, driverSeatButton, icon_size);
             driverSeatButton->setChecked(false);
         }
 
         if(level == 1){
-            this->arbiter.forge().iconize(seat_1_icon, driverSeatButton, 32);
+            this->arbiter.forge().iconize(seat_1_icon, driverSeatButton, icon_size);
             driverSeatButton->setChecked(true);
         }
 
         if(level == 2){
-           
-            this->arbiter.forge().iconize(seat_2_icon, driverSeatButton, 32);
+            this->arbiter.forge().iconize(seat_2_icon, driverSeatButton, icon_size);
             driverSeatButton->setChecked(true);
         }
 
         if(level == 3){
-    
-            this->arbiter.forge().iconize(seat_3_icon, driverSeatButton, 32);
+            this->arbiter.forge().iconize(seat_3_icon, driverSeatButton, icon_size);
             driverSeatButton->setChecked(true);
         }
     });
 
-    connect(HVAC, &MalibuHVAC::passengerHeatedSeatChanged, [this](int level){
-        if(level == 0){
-          
-            this->arbiter.forge().iconize(seat_off_icon, passengerSeatButton, 32);
+    connect(HVAC, &MalibuHVAC::passengerHeatedSeatChanged, [this, icon_size](int level){
+        if(level == 0){  
+            this->arbiter.forge().iconize(seat_off_icon, passengerSeatButton, icon_size);
             passengerSeatButton->setChecked(false);
         }
 
         if(level == 1){
-           
-            this->arbiter.forge().iconize(seat_1_icon, passengerSeatButton, 32);
+            this->arbiter.forge().iconize(seat_1_icon, passengerSeatButton, icon_size);
             passengerSeatButton->setChecked(true);
         }
 
         if(level == 2){
-           
-            this->arbiter.forge().iconize(seat_2_icon, passengerSeatButton, 32);
+            this->arbiter.forge().iconize(seat_2_icon, passengerSeatButton, icon_size);
             passengerSeatButton->setChecked(true);
         }
 
         if(level == 3){
-            
-            this->arbiter.forge().iconize(seat_3_icon, passengerSeatButton, 32);
+            this->arbiter.forge().iconize(seat_3_icon, passengerSeatButton, icon_size);
             passengerSeatButton->setChecked(true);
         }
     });
     
-    connect(HVAC, &MalibuHVAC::recircChanged, [this](RecircMode mode)
+    connect(HVAC, &MalibuHVAC::recircChanged, [this, icon_size](RecircMode mode)
     {
         if(mode == RecircMode::auto_recirc){
-             this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, 32);
-
+             this->arbiter.forge().iconize(QString::fromUtf8("recirc_auto"), recircButton, icon_size);
         } else {
-             this->arbiter.forge().iconize(QString::fromUtf8("recirc_internal"), recircButton, 32);
+             this->arbiter.forge().iconize(QString::fromUtf8("recirc_internal"), recircButton, icon_size);
         }
     });
 
