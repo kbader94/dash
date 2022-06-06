@@ -160,10 +160,6 @@ bool Malibu::init(ICANBus *)
 MalibuHVAC::MalibuHVAC()
 {
 
-    const auto infos = QSerialPortInfo::availablePorts();
-    QString portName;
-    bool connected = false;
-
     if (!serial_.setBaudRate(QSerialPort::Baud115200))
         qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
     if (!serial_.setDataBits(QSerialPort::Data8))
@@ -175,26 +171,13 @@ MalibuHVAC::MalibuHVAC()
     if (!serial_.setStopBits(QSerialPort::OneStop))
         qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
 
-    for (const QSerialPortInfo &info : infos)
-    {
-        
-        portName = info.portName();
-        serial_.setPortName(portName);
-
-        if(serial_.open(QIODevice::ReadWrite) && info.description().contains("Arduino Due Prog. Port")){
-            qDebug() << "[HVAC][LIN] Connection successfully established on " << info.systemLocation();
-            connected = true;
-            break;
-        } else {
-            qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
-            continue;
-        }
+    serial_.setPortName("ttyS0");
+    if(serial_.open(QIODevice::ReadWrite)){
+        qDebug() << "[HVAC][LIN] Connection successfully established on port ttyS0";
+   
+    } else {
+        qDebug() << "[HVAC][LIN] Connection error: " << serial_.errorString();
   
-    }
-
-    if (!connected)
-    {
-        qDebug() << "[HVAC][LIN] no device found";
     }
 
     connect(&serial_, &QSerialPort::readyRead, [&]
