@@ -159,6 +159,7 @@ class MalibuHVAC : public QObject {
 
     private:
      QSerialPort serial_;//LIN data
+     void send_lin_data(QByteArray data);
      void process_serial_data();
      QByteArray read_buffer;
      StatusFrame current_status;

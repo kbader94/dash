@@ -196,44 +196,53 @@ MalibuHVAC::MalibuHVAC()
     });
 }
 
+void MalibuHVAC::send_lin_data(QByteArray data)
+{
+    QByteArray lin_frame = QByteArray(10,0);
+    lin_frame.replace(1, 8, data);
+    lin_frame[0] = 0x55;
+    lin_frame[9] = 0x0A;
+    serial_.write(lin_frame);
+}
+
 void MalibuHVAC::increaseDriverTemp(){
     QByteArray ba = QByteArray(8,0);
     ba[5] = 0x01;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::decreaseDriverTemp(){
     QByteArray ba = QByteArray(8,0);
     ba[5] = 0x7F;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::increasePassengerTemp()
 {
     QByteArray ba = QByteArray(8,0);
     ba[6] = 0x01;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::decreasePassengerTemp()
 {
     QByteArray ba = QByteArray(8,0);
     ba[6] = 0x7F;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::increaseFan()
 {
     QByteArray ba = QByteArray(8,0);
     ba[7] = 0x01;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::decreaseFan()
 {
     QByteArray ba = QByteArray(8,0);
     ba[7] = 0x7F;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::toggleVentMode()
@@ -266,11 +275,11 @@ void MalibuHVAC::setVentMode(VentMode mode)
     if(mode == VentMode::defrostFeet){
         QByteArray ba = QByteArray(8,0);
         ba[4] = 0x02;//this right?
-        serial_.write(ba);
+        send_lin_data(ba);
     } else {
         QByteArray ba = QByteArray(8,0);
         ba[1] = mode;
-        serial_.write(ba);
+        send_lin_data(ba);
     }
 }
 
@@ -278,49 +287,49 @@ void MalibuHVAC::toggleAC()
 {
     QByteArray ba = QByteArray(8,0);
     ba[1] = buttonMask1::AC_FULL;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::toggleRecirc()
 {
     QByteArray ba = QByteArray(8,0);
     ba[1] = buttonMask1::RECIRC;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::toggleDriverAuto()
 {
     QByteArray ba = QByteArray(8,0);
     ba[2] = buttonMask2::DRIVER_AUTO;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::togglePassengerSync()
 {
     QByteArray ba = QByteArray(8,0);
     ba[2] = buttonMask2::PASSENGER_SYNC;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::toggleRearDefrost()
 {
     QByteArray ba = QByteArray(8,0);
     ba[1] = buttonMask1::REAR_DEFROST;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::toggleDriverHeatedSeat()
 {
     QByteArray ba = QByteArray(8,0);
     ba[2] = buttonMask2::DRIVER_HEATED_SEAT;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::togglePassengerHeatedSeat()
 {
     QByteArray ba = QByteArray(8,0);
     ba[2] = buttonMask2::PASSENGER_HEATED_SEAT;
-    serial_.write(ba);
+    send_lin_data(ba);
 }
 
 void MalibuHVAC::process_serial_data()
