@@ -199,9 +199,12 @@ MalibuHVAC::MalibuHVAC()
 void MalibuHVAC::send_lin_data(QByteArray data)
 {
     QByteArray lin_frame = QByteArray(10,0);
-    lin_frame.replace(1, 8, data);
+    for(int i = 1; i <= 8; i++){
+        lin_frame[i] = data[i - 1];
+    }
     lin_frame[0] = 0x55;
     lin_frame[9] = 0x0A;
+    qDebug() << "sending: " << lin_frame;
     serial_.write(lin_frame);
 }
 
@@ -274,11 +277,27 @@ void MalibuHVAC::setVentMode(VentMode mode)
 {
     if(mode == VentMode::defrostFeet){
         QByteArray ba = QByteArray(8,0);
-        ba[4] = 0x02;//this right?
+        ba[4] = 0x02;
         send_lin_data(ba);
-    } else {
+    } 
+    if(mode == VentMode::panel){
         QByteArray ba = QByteArray(8,0);
-        ba[1] = mode;
+        ba[1] = 0x04;
+        send_lin_data(ba);
+    }
+    if(mode == VentMode::panelFeet){
+        QByteArray ba = QByteArray(8,0);
+        ba[1] = 0x10;
+        send_lin_data(ba);
+    }
+    if(mode == VentMode::feet){
+        QByteArray ba = QByteArray(8,0);
+        ba[1] = 0x08;
+        send_lin_data(ba);
+    }
+    if(mode == VentMode::defrost){
+        QByteArray ba = QByteArray(8,0);
+        ba[1] = 0x80;
         send_lin_data(ba);
     }
 }
