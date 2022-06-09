@@ -530,8 +530,9 @@ Home::Home(Arbiter *arbiter, QSettings &settings, int idx, ILauncherPlugin *plug
     , idx(idx)
 {
     this->plugin = plugin;
-    
+    this->run_startup_apps();
     this->setup_ui();
+
     
 }
 
