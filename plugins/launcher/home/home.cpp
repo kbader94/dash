@@ -539,12 +539,8 @@ Home::Home(Arbiter *arbiter, QSettings &settings, int idx, ILauncherPlugin *plug
 void Home::run_startup_apps()
 {
 
-    //run xrandr rotate
-    QProcess::execute("xrandr -o right");
     //launch onboard - virtual keyboard
-    QProcess::execute("onboard");
-
-
+    QProcess::startDetached("onboard");
 
 }
 
