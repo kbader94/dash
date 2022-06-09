@@ -84,6 +84,9 @@ void XManager::setWindowPositions()
         int x = screen->geometry().width() - width;
         int y = plugin->home->mapToGlobal(topLeft).y(); 
 
+        int onboard_x = screen->geometry().width() - width;
+        int onboard_y = plugin->home->mapToGlobal(topLeft).y() + height - 250;
+
         qDebug() << "x: " << x;
         qDebug() << "y: " << y;
         
@@ -105,12 +108,22 @@ void XManager::setWindowPositions()
         stream << "strictgeometry=true" << endl;
         stream << "strictgeometryrule=2" << endl;
         stream << "types=353" << endl;
-        stream << "wmclass=^((?!dash).)*$" << endl;
+        stream << "wmclass=^((?!dash|onboard).)*$" << endl;
         stream << "wmclasscomplete=false" << endl;
         stream << "wmclassmatch=3" << endl;
         stream << "" << endl;
+        stream << "[2]";
+        stream << "Description=onboard virtual keyboard" << endl;
+        stream << "position=" << onboard_x << "," << onboard_y << endl;
+        stream << "positionrule=2" << endl;
+        stream << "size=" << width << ",200" << endl;
+        stream << "sizerule=2" << endl;
+        stream << "wmclass=onboard" << endl;
+        stream << "wmclasscomplete=false" << endl;
+        stream << "wmclassmatch=1" << endl;
+        stream << "" << endl;
         stream << "[General]" << endl;
-        stream << "count=1" << endl;
+        stream << "count=2" << endl;
 
         //update window positions
         QDBusMessage message = QDBusMessage::createSignal("/KWin","org.kde.KWin", "reloadConfig");
@@ -520,6 +533,18 @@ Home::Home(Arbiter *arbiter, QSettings &settings, int idx, ILauncherPlugin *plug
     
     this->setup_ui();
     
+}
+
+void Home::run_startup_apps()
+{
+
+    //run xrandr rotate
+    QProcess::execute("xrandr -o right");
+    //launch onboard - virtual keyboard
+    QProcess::execute("onboard");
+
+
+
 }
 
 void Home::setup_ui()

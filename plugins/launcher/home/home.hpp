@@ -149,6 +149,7 @@ protected:
     int idx;
 
     void setup_ui();
+    void run_startup_apps();
    
 };
 
